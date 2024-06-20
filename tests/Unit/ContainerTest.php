@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Indgy\Container\Container;
-use Tests\Assets\{A,B,C,Foo,Bar};
+use Tests\Assets\{A,B,C,Foo,Bar,Plain};
 
 
 test('can set and get an instance from a function', function () {
@@ -70,5 +70,24 @@ test('can instantiate nested classes', function () {
     $c = $b->c();
 
     expect($c)->toBeInstanceOf(C::class);
+
+});
+test('can do magical autowiring', function () {
+
+    $c = new Container;
+
+    $a = $c->get(A::class);
+    expect($a)->toBeInstanceOf(A::class);
+
+    $b = $a->b();
+    expect($b)->toBeInstanceOf(B::class);
+
+    $c = $b->c();
+    expect($c)->toBeInstanceOf(C::class);
+
+    $c = new Container;
+
+    $plain = $c->get(Plain::class);
+    expect($plain)->toBeInstanceOf(Plain::class);
 
 });

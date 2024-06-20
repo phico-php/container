@@ -2,6 +2,9 @@
 
 namespace Indgy\Container;
 
+use Reflection;
+use ReflectionNamedType;
+
 class Container
 {
     protected array $items = [];
@@ -44,7 +47,7 @@ class Container
         // double check we know how to create the requested instance
         if (!$this->has($id)) {
             if (class_exists($id)) {
-                return new $id();
+                return $this->autowire($id);
             }
             throw new \InvalidArgumentException(sprintf('Cannot get(%s) from the container as it cannot be found', $id));
         }
@@ -104,6 +107,33 @@ class Container
         }
 
         throw new \RuntimeException("Cannot instantiate '%s', not a string or callable", $id);
+    }
+
+    // autowiring, yay!
+
+    private function autowire($id) {
+        $reflector = new \ReflectionClass($id);
+
+        // check for a constructor
+        $constructor = $reflector->getConstructor();
+        if (is_null($constructor)) {
+            // create the class without arguments
+            return new $id();
+        }
+
+        // recursively resolve constructor params
+        $dependencies = [];
+        foreach ($constructor->getParameters() as $param) {
+            $type = $param->getType();
+            if (!$type instanceof ReflectionNamedType OR $type->isBuiltin()) {
+                throw new \RuntimeException(sprintf("Cannot instantiate '%s' as parameter '%s' cannot be resolved, please provide a constructor using set()", $id, $param->getName()));
+            }
+            // resolve the dependencys' dependencies
+            $dependencies[] = $this->autowire($type->getName());
+        }
+
+        // Create the class with the resolved dependencies
+        return $reflector->newInstanceArgs($dependencies);
     }
 
     // support options methods, ensure we have a current id to work with
