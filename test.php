@@ -18,11 +18,16 @@ $c->set(Bar::class, function() {
     return new Bar('barred');
 });
 
+$c->alias('FooOne', Foo::class);
 
 var_dump([
+    'fooOne' => $c->has('FooOne'),
     'foo' => $c->has('Foo'),
     'bar' => $c->has('Bar'),
+    'barOne' => $c->has('BarOne'),
 ]);
 
 var_dump($c->get('Foo'));
+var_dump($c->get('FooOne'));
 var_dump($c->get('Bar'));
+var_dump($c->get('BarOne'));
