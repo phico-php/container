@@ -30,4 +30,4 @@ var_dump([
 var_dump($c->get('Foo'));
 var_dump($c->get('FooOne'));
 var_dump($c->get('Bar'));
-var_dump($c->get('BarOne'));
+// var_dump($c->get('BarOne'));
