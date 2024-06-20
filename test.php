@@ -13,9 +13,9 @@ var_dump([
     'bar' => $c->has('Bar'),
 ]);
 
-$c->set(Counter::class, fn() => new Counter(1))->singleton(true);
+$c->set(Counter::class, fn() => new Counter(1))->shared(true);
 $c->set(Foo::class, fn() => new Foo('foo'));
-$c->set(Bar::class, function() {
+$c->set(Bar::class, function () {
     return new Bar('barred');
 })->alias('BarOne');
 

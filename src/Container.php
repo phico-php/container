@@ -5,7 +5,6 @@ class Container
     protected array $items = [];
     protected array $aliases = [];
     private array $instances = [];
-    private array $singletons = [];
     private string $cur = '';
 
 
@@ -15,14 +14,14 @@ class Container
         $this->cur = '';
 
         // check items and aliases arrays
-        return (array_key_exists($id, $this->items) OR array_key_exists($id, $this->aliases));
+        return (array_key_exists($id, $this->items) or array_key_exists($id, $this->aliases));
     }
     public function set(string $id, callable $fn): self
     {
         // set current working id
         $this->cur = $id;
         $this->items[$id] = [
-            'singleton' => true,
+            'share' => false,
             'call' => $fn
         ];
         return $this;
@@ -37,12 +36,12 @@ class Container
             $id = $this->aliases[$id];
         }
         // double check we know how to create the requested instance
-        if ( ! $this->has($id)) {
+        if (!$this->has($id)) {
             throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container as it cannot be found', $id));
         }
 
-        // if singleton then return the existing instance
-        if ($this->isSingleton($id)) {
+        // if shared then return the existing instance
+        if ($this->items[$id]['share']) {
             // create instance if we don't already have it
             if (!array_key_exists($id, $this->instances)) {
                 $this->instances[$id] = $this->instantiate($id);
@@ -64,21 +63,13 @@ class Container
 
         return $this;
     }
-    public function singleton(bool $bool): self
+    public function share(bool $bool): self
     {
-        $this->checkCur('singleton');
+        $this->checkCur('share');
 
-        $this->items[$this->cur]['singleton'] = $bool;
+        $this->items[$this->cur]['share'] = $bool;
 
         return $this;
-    }
-
-    // handle singleton / multiton
-
-    // return true if we should reuse the instance of $id
-    public function isSingleton(string $id): bool
-    {
-        return array_key_exists($id, $this->singletons);
     }
 
     // create an instance
