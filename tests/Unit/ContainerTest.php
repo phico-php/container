@@ -13,6 +13,13 @@ test('can set and get an instance from a function', function () {
 
     expect($c->get(Foo::class))->toBeInstanceOf(Foo::class);
 
+    $c->set(Bar::class, function() {
+        return new Bar('barbar');
+    });
+
+    expect($c->get(Foo::class))->toBeInstanceOf(Foo::class);
+
+    expect($c->get(Bar::class))->toBeInstanceOf(Bar::class);
 });
 test('can set and get an instance from a string', function () {
 
