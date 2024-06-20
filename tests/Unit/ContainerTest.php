@@ -3,7 +3,7 @@
 namespace Tests\Unit;
 
 use Indgy\Container\Container;
-use Tests\Assets\Foo;
+use Tests\Assets\{A,B,C,Foo,Bar};
 
 
 test('can set and get an instance from a function', function () {
@@ -48,5 +48,27 @@ test('has() returns true for alias', function () {
     expect($c->has(Foo::class))->toBe(true);
     expect($c->has('Bar'))->toBe(true);
     expect($c->has('AnythingElse'))->toBe(false);
+
+});
+test('can instantiate nested classes', function () {
+
+    $c = new Container;
+    $c->set(C::class, C::class);
+    $c->set(B::class, function() use ($c) {
+        return new B($c->get(C::class));
+    });
+    $c->set(A::class, fn() => new A($c->get(B::class)));
+
+    $a = $c->get(A::class);
+
+    expect($a)->toBeInstanceOf(A::class);
+
+    $b = $a->b();
+
+    expect($b)->toBeInstanceOf(B::class);
+
+    $c = $b->c();
+
+    expect($c)->toBeInstanceOf(C::class);
 
 });
