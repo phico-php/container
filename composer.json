@@ -1,0 +1,29 @@
+{
+  "name": "indgy/container",
+  "description": "The simplest possible useful container",
+  "type": "library",
+  "require-dev": {
+    "phpstan/phpstan": "^1.11",
+    "pestphp/pest": "^2.34"
+  },
+  "license": "BSD-3-Clause",
+  "autoload": {
+    "psr-4": {
+      "Indgy\\Container\\": "src/",
+      "Tests\\Assets\\": "tests/Assets/"
+    }
+  },
+  "authors": [
+    {
+      "name": "indgy",
+      "email": "me@indgy.uk"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {},
+  "config": {
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}
