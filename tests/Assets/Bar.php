@@ -1,11 +1,13 @@
 <?php
 
+namespace Tests\Assets;
+
 class Bar
 {
     private string $name;
 
 
-    public function __construct(string $str)
+    public function __construct(string $str = '')
     {
         $this->name = $str ?? 'bar';
     }

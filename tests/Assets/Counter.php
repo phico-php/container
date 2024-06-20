@@ -1,5 +1,8 @@
 <?php
 
+namespace Tests\Assets;
+
+
 class Counter
 {
     private int $counter;
@@ -10,10 +13,10 @@ class Counter
         $this->counter = $counter;
     }
 
-    public function increment(): string
+    public function increment(): int
     {
         $this->counter++;
 
-        return sprintf("\nCounted to %d\n", $this->counter);
+        return $this->counter;
     }
 }
