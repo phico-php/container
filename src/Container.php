@@ -53,22 +53,20 @@ class Container
 
     // support options
 
-    public function singleton(bool $bool): self
+    public function alias(string $alias): self
     {
-        if (empty($this->cur)) {
-            throw new BadMethodCallException('Cannot call singleton() before calling set(), call set()->singleton() instead');
-        }
+        $this->checkCur('alias');
 
-        $this->items[$this->cur]['singleton'] = $bool;
+        $this->aliases[$alias] = $this->cur;
 
         return $this;
     }
-
-    // support aliases
-
-    public function alias(string $from, string $to): self
+    public function singleton(bool $bool): self
     {
-        $this->aliases[$from] = $to;
+        $this->checkCur('singleton');
+
+        $this->items[$this->cur]['singleton'] = $bool;
+
         return $this;
     }
 
@@ -83,6 +81,12 @@ class Container
     // create an instance
     private function instantiate($id): object
     {
-        return $this->items[$id]();
+        return $this->items[$id]['call']();
+    }
+    private function checkCur(string $method): void
+    {
+        if (empty($this->cur)) {
+            throw new BadMethodCallException(sprintf('Cannot call $1%s() before calling set(), call set()->$1%s(); instead', $method));
+        }
     }
 }

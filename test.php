@@ -16,9 +16,7 @@ var_dump([
 $c->set(Foo::class, fn() => new Foo('foo'));
 $c->set(Bar::class, function() {
     return new Bar('barred');
-});
-
-$c->alias('FooOne', Foo::class);
+})->alias('BarOne');
 
 var_dump([
     'fooOne' => $c->has('FooOne'),
@@ -28,6 +26,6 @@ var_dump([
 ]);
 
 var_dump($c->get('Foo'));
-var_dump($c->get('FooOne'));
 var_dump($c->get('Bar'));
+var_dump($c->get('BarOne'));
 // var_dump($c->get('BarOne'));
