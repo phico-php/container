@@ -2,16 +2,32 @@
 
 namespace Indgy\Container;
 
-use Reflection;
+use BadMethodCallException;
+use InvalidArgumentException;
+use ReflectionClass;
 use ReflectionNamedType;
+use RuntimeException;
+
 
 class Container
 {
     protected array $items = [];
+    protected string $cur = '';
     private array $instances = [];
-    private string $cur = '';
+
+    // user defined options
+    private bool $autowiring = true;
+    private bool $sharing = true;
 
 
+    public function __construct(array $options = [])
+    {
+        foreach ($options as $k=>$v) {
+            if (in_array($k, ['autowiring','sharing'])) {
+                $this->$k = (bool) $v;
+            }
+        }
+    }
     public function has(string $id): bool
     {
         // reset current working id
@@ -24,19 +40,22 @@ class Container
     {
         // set current working id
         $this->cur = $id;
+
         // if call is empty use the id as the class name
         if (empty($call)) {
             $id = $call;
             if (!class_exists($id)) {
-                throw new \InvalidArgumentException(sprintf('Cannot set(%s) as the class does not exist', $id));
+                throw new InvalidArgumentException(sprintf('Cannot set(%s) as the class does not exist', $id));
             }
         }
+
         // set the parameters for this class
         $this->items[$id] = [
-            'share' => false,
+            'share' => $this->sharing,
             'call' => $call,
             'args' => $args
         ];
+
         return $this;
     }
     public function get(string $id): mixed
@@ -47,9 +66,12 @@ class Container
         // double check we know how to create the requested instance
         if (!$this->has($id)) {
             if (class_exists($id)) {
-                return $this->autowire($id);
+                if (true === $this->autowiring) {
+                    return $this->autowire($id);
+                }
+                throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set(), the class can be found but autowiring is disabled', $id));
             }
-            throw new \InvalidArgumentException(sprintf('Cannot get(%s) from the container as it cannot be found', $id));
+            throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set() and the class cannot be found', $id));
         }
 
         // if shared then return the existing instance
@@ -72,7 +94,7 @@ class Container
         $this->checkForCur('alias');
 
         if (array_key_exists($alias, $this->instances)) {
-            throw new \InvalidArgumentException(sprintf('Cannot set alias %s as it has already been defined', $alias));
+            throw new InvalidArgumentException(sprintf('Cannot call alias(%s) again as it has previously been defined', $alias));
         }
 
         $this->items[$alias] = $this->items[$this->cur];
@@ -106,13 +128,13 @@ class Container
             return $call(...$args);
         }
 
-        throw new \RuntimeException("Cannot instantiate '%s', not a string or callable", $id);
+        throw new RuntimeException("Cannot instantiate '%s', as it is not a string or a callable", $id);
     }
 
     // autowiring, yay!
 
     private function autowire($id) {
-        $reflector = new \ReflectionClass($id);
+        $reflector = new ReflectionClass($id);
 
         // check for a constructor
         $constructor = $reflector->getConstructor();
@@ -126,7 +148,7 @@ class Container
         foreach ($constructor->getParameters() as $param) {
             $type = $param->getType();
             if (!$type instanceof ReflectionNamedType OR $type->isBuiltin()) {
-                throw new \RuntimeException(sprintf("Cannot instantiate '%s' as parameter '%s' cannot be resolved, please provide a constructor using set()", $id, $param->getName()));
+                throw new RuntimeException(sprintf("Cannot instantiate '%s' as parameter '%s' cannot be resolved, please provide a constructor using set()", $id, $param->getName()));
             }
             // resolve the dependencys' dependencies
             $dependencies[] = $this->autowire($type->getName());
@@ -140,7 +162,7 @@ class Container
     private function checkForCur(string $method): void
     {
         if (empty($this->cur)) {
-            throw new \BadMethodCallException(sprintf('Cannot call %1$s() before calling set(), call `set()->%1$s()` instead', $method));
+            throw new BadMethodCallException(sprintf('Cannot call %1$s() before calling set(), call `set()->%1$s()` instead', $method));
         }
     }
 }
