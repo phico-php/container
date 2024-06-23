@@ -1,6 +1,6 @@
 <?php
 
-namespace Indgy\Container;
+namespace Phico\Container;
 
 use BadMethodCallException;
 use InvalidArgumentException;

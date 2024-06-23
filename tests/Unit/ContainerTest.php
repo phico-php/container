@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use Indgy\Container\Container;
+use Phico\Container\Container;
 use Tests\Assets\{A,B,C,Foo,Bar,Plain};
 
 

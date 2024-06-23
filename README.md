@@ -7,7 +7,7 @@ Small and focussed Dependency Injection container for the `Phico` framework.
 Using composer
 
 ```sh
-composer require picophp/container
+composer require phico/container
 ```
 
 ## Reference
@@ -29,7 +29,7 @@ Returns an instatiated class
 
 ```php
 // pass an optional array of parameters through the constructor
-$c = new Pico\Container([
+$c = new Phico\Container([
     'autowiring' => false, // default is true
     'sharing' => false, // default is true
 ]);

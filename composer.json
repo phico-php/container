@@ -1,17 +1,16 @@
 {
-  "name": "indgy/container",
-  "description": "The simplest possible useful container",
+  "name": "phico/container",
+  "description": "Lightweight dependency injection container for Phico",
   "type": "library",
-  "require-dev": {
-    "phpstan/phpstan": "^1.11",
-    "pestphp/pest": "^2.34"
-  },
   "license": "BSD-3-Clause",
   "autoload": {
     "psr-4": {
-      "Indgy\\Container\\": "src/",
-      "Tests\\Assets\\": "tests/Assets/"
-    }
+      "Phico\\Container\\": "src/",
+      "Phico\\Container\\Tests\\Assets\\": "tests/Assets/"
+    },
+    "files": [
+      "src/functions.php"
+    ]
   },
   "authors": [
     {
@@ -20,10 +19,17 @@
     }
   ],
   "minimum-stability": "stable",
-  "require": {},
   "config": {
     "allow-plugins": {
+      "phpstan/extension-installer": true,
       "pestphp/pest-plugin": true
     }
+  },
+  "require": {
+    "php": "^8.0"
+  },
+  "require-dev": {
+    "phpstan/phpstan": "*",
+    "pestphp/pest": "^2.34"
   }
 }
