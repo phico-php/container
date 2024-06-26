@@ -16,14 +16,14 @@ class Container
     private array $instances = [];
 
     // user defined options
-    private bool $autowiring = true;
+    private bool $autowire = true;
     private bool $sharing = true;
 
 
     public function __construct(array $options = [])
     {
-        foreach ($options as $k=>$v) {
-            if (in_array($k, ['autowiring','sharing'])) {
+        foreach ($options as $k => $v) {
+            if (in_array($k, ['autowire', 'sharing'])) {
                 $this->$k = (bool) $v;
             }
         }
@@ -66,10 +66,10 @@ class Container
         // double check we know how to create the requested instance
         if (!$this->has($id)) {
             if (class_exists($id)) {
-                if (true === $this->autowiring) {
+                if (true === $this->autowire) {
                     return $this->autowire($id);
                 }
-                throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set(), the class can be found but autowiring is disabled', $id));
+                throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set(), the class can be found but autowiring is disabled, set autowire = true in your config to enable it', $id));
             }
             throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set() and the class cannot be found', $id));
         }
@@ -133,7 +133,8 @@ class Container
 
     // autowiring, yay!
 
-    private function autowire($id) {
+    private function autowire($id)
+    {
         $reflector = new ReflectionClass($id);
 
         // check for a constructor
@@ -147,7 +148,7 @@ class Container
         $dependencies = [];
         foreach ($constructor->getParameters() as $param) {
             $type = $param->getType();
-            if (!$type instanceof ReflectionNamedType OR $type->isBuiltin()) {
+            if (!$type instanceof ReflectionNamedType or $type->isBuiltin()) {
                 throw new RuntimeException(sprintf("Cannot instantiate '%s' as parameter '%s' cannot be resolved, please provide a constructor using set()", $id, $param->getName()));
             }
             // resolve the dependencys' dependencies
