@@ -16,16 +16,19 @@ class Container
     private array $instances = [];
 
     // user defined options
-    private bool $autowire = true;
-    private bool $sharing = true;
+    private bool $autowire;
+    private bool $sharing;
+    private array $options = [
+        'autowire' => true,
+        'sharing' => true,
+    ];
 
 
-    public function __construct(array $options = [])
+    public function __construct(array $config = [])
     {
-        foreach ($options as $k => $v) {
-            if (in_array($k, ['autowire', 'sharing'])) {
-                $this->$k = (bool) $v;
-            }
+        // apply default options, overriding with user config
+        foreach ($this->options as $k => $v) {
+            $this->$k = (isset($config[$k])) ? $config[$k] : $v;
         }
     }
     public function has(string $id): bool
