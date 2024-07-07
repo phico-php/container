@@ -11,13 +11,19 @@ use RuntimeException;
 
 class Container
 {
-    protected array $items = [];
+    // holds the list of object creation definitions
+    protected array $definitions = [];
+    // holds the id being operated on during set()
     protected string $cur = '';
+    // holds a list of created instances
     private array $instances = [];
 
     // user defined options
+    // enable autowiring
     private bool $autowire;
+    // default to sharing created instances
     private bool $sharing;
+    // allowed options
     private array $options = [
         'autowire' => true,
         'sharing' => true,
@@ -31,14 +37,24 @@ class Container
             $this->$k = (isset($config[$k])) ? $config[$k] : $v;
         }
     }
+    // check a class can be instantiated
     public function has(string $id): bool
     {
         // reset current working id
         $this->cur = '';
 
-        // check items and aliases arrays
-        return array_key_exists($id, $this->items);
+        // check items and aliases arrays first
+        if (array_key_exists($id, $this->definitions)) {
+            return true;
+        }
+        // if autowiring is enabled, we can create any class
+        if ($this->autowire) {
+            return class_exists($id);
+        }
+        // otherwise we can't
+        return false;
     }
+    // set a class creation definition
     public function set(string $id, callable|string $call = '', array $args = []): self
     {
         // set current working id
@@ -53,7 +69,7 @@ class Container
         }
 
         // set the parameters for this class
-        $this->items[$id] = [
+        $this->definitions[$id] = [
             'share' => $this->sharing,
             'call' => $call,
             'args' => $args
@@ -61,37 +77,38 @@ class Container
 
         return $this;
     }
+    // get an instantiated class
     public function get(string $id): mixed
     {
         // reset current working id
         $this->cur = '';
 
-        // double check we know how to create the requested instance
-        if (!$this->has($id)) {
-            if (class_exists($id)) {
-                if (true === $this->autowire) {
-                    return $this->autowire($id);
-                }
-                throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set(), the class can be found but autowiring is disabled, set autowire = true in your config to enable it', $id));
-            }
-            throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set() and the class cannot be found', $id));
+        // is id in the list of created instances
+        if (array_key_exists($id, $this->instances)) {
+            return ($this->instances[$id]);
         }
-
-        // if shared then return the existing instance
-        if (true === $this->items[$id]['share']) {
-            // create instance if we don't already have it
-            if (!array_key_exists($id, $this->instances)) {
-                $this->instances[$id] = $this->instantiate($id);
+        // is id in the list of definitions
+        if (array_key_exists($id, $this->definitions)) {
+            $obj = $this->instantiate($id);
+            // store in instances to be shared on futher requests
+            if ($this->definitions[$id]['share']) {
+                $this->instances[$id] = $obj;
             }
-            return $this->instances[$id];
+            return $obj;
         }
-
-        // generate a new instance
-        return $this->instantiate($id);
+        // attempt autowiring
+        if (class_exists($id)) {
+            if (true === $this->autowire) {
+                return $this->autowire($id);
+            }
+            throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set(), the class can be found but autowiring is disabled, set autowire = true in your config to enable it', $id));
+        }
+        throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set() and the class cannot be found', $id));
     }
 
     // support options
 
+    // create an alias for this defintion
     public function alias(string $alias): self
     {
         $this->checkForCur('alias');
@@ -100,27 +117,28 @@ class Container
             throw new InvalidArgumentException(sprintf('Cannot call alias(%s) again as it has previously been defined', $alias));
         }
 
-        $this->items[$alias] = $this->items[$this->cur];
+        $this->definitions[$alias] = $this->definitions[$this->cur];
 
         return $this;
     }
+    // toggle sharing for this defintion
     public function share(bool $bool): self
     {
         $this->checkForCur('share');
 
-        $this->items[$this->cur]['share'] = $bool;
+        $this->definitions[$this->cur]['share'] = $bool;
 
         return $this;
     }
 
-    // create an instance
+    // create an instance from an existing defintion
     private function instantiate($id): object
     {
         $args = array_map(function ($arg) {
             return is_callable($arg) ? call_user_func($arg) : $this->get($arg);
-        }, $this->items[$id]['args']);
+        }, $this->definitions[$id]['args']);
 
-        $call = $this->items[$id]['call'];
+        $call = $this->definitions[$id]['call'];
 
         if (is_string($call)) {
             if (class_exists($call)) {
@@ -135,7 +153,6 @@ class Container
     }
 
     // autowiring, yay!
-
     private function autowire($id)
     {
         $reflector = new ReflectionClass($id);
@@ -155,7 +172,7 @@ class Container
                 throw new RuntimeException(sprintf("Cannot instantiate '%s' as parameter '%s' cannot be resolved, please provide a constructor using set()", $id, $param->getName()));
             }
             // resolve the dependencys' dependencies
-            $dependencies[] = $this->autowire($type->getName());
+            $dependencies[] = $this->get($type->getName());
         }
 
         // Create the class with the resolved dependencies
