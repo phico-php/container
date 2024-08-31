@@ -101,9 +101,9 @@ class Container
             if (true === $this->autowire) {
                 return $this->autowire($id);
             }
-            throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set(), the class can be found but autowiring is disabled, set autowire = true in your config to enable it', $id));
+            throw new ContainerNotFoundException(sprintf('Cannot get(%s) from the container, it has not been set(), the class can be found but autowiring is disabled, set autowire = true in your config to enable it', $id));
         }
-        throw new InvalidArgumentException(sprintf('Cannot get(%s) from the container, it has not been set() and the class cannot be found', $id));
+        throw new ContainerNotFoundException(sprintf('Cannot get(%s) from the container, it has not been set() and the class cannot be found', $id));
     }
 
     // support options
