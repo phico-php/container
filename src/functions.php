@@ -6,7 +6,7 @@ declare(strict_types=1);
 function container(array $config = []): \Phico\Container\Container
 {
     if (empty($config)) {
-        $config = config()->get('container');
+        $config = config()->get('container', []);
     }
 
     static $container;
