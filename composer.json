@@ -3,6 +3,7 @@
   "description": "Lightweight dependency injection container for Phico",
   "type": "library",
   "license": "BSD-3-Clause",
+  "minimum-stability": "dev",
   "autoload": {
     "psr-4": {
       "Phico\\Container\\": "src/",
@@ -18,7 +19,6 @@
       "email": "me@indgy.uk"
     }
   ],
-  "minimum-stability": "stable",
   "config": {
     "allow-plugins": {
       "phpstan/extension-installer": true,
@@ -26,10 +26,14 @@
     }
   },
   "require": {
-    "php": "^8.0"
+    "php": "^8.0",
+    "phico/config": "dev-main"
   },
   "require-dev": {
     "phpstan/phpstan": "*",
     "pestphp/pest": "^2.34"
+  },
+  "scripts": {
+    "analyse": "vendor/bin/phpstan analyse src/"
   }
 }
